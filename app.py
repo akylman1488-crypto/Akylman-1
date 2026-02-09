@@ -47,13 +47,12 @@ with st.sidebar:
 
     password = st.text_input("Введи пароль доступа:", type="password")
     if password:
-        if password == "1234": # Замени на свой пароль
             if not st.session_state.access_granted:
                 st.session_state.access_granted = True
                 st.success("Пароль верен!")
-                st.balloons() # Салют/шарики
+                st.balloons() 
             
-            model_options["Версия Про 🔥"] = "llama-3.1-70b-versatile"
+            model_options["Версия Про 🔥"] = "llama-3.1-70b-specdec"
             model_options["Версия Плюс 💎"] = "mixtral-8x7b-32768"
         else:
             st.error("Пароль неверен")
