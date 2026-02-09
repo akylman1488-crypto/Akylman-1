@@ -1,13 +1,13 @@
 import streamlit as st
-import google.generativeai as genai
+from groq import Groq
 import random
 from datetime import datetime
 
-GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
-MODEL_NAME = "gemini-1.5-flash"
-SYSTEM_PROMPT = "Ты — Akylman AI, мудрый наставник. Ты всегда начинаешь диалог первым. Ты человечный, ироничный и умный. Твои ответы должны быть глубокими, но понятными."
+GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
+MODEL_NAME = "llama-3.3-70b-versatile"
+SYSTEM_PROMPT = "Ты — Akylman AI, мудрый наставник. Ты всегда начинаешь диалог первым. Ты человечный, ироничный и умный. Отвечай на языке пользователя."
 
-genai.configure(api_key=GOOGLE_API_KEY)
+client = Groq(api_key=GROQ_API_KEY)
 
 def get_opener():
     hour = datetime.now().hour
@@ -20,20 +20,18 @@ def get_opener():
 
 def generate_response(messages):
     try:
-        model = genai.GenerativeModel(model_name=MODEL_NAME, system_instruction=SYSTEM_PROMPT)
-        formatted_history = []
-        for msg in messages[:-1]:
-            role = "user" if msg["role"] == "user" else "model"
-            formatted_history.append({"role": role, "parts": [msg["content"]]})
-        
-        chat = model.start_chat(history=formatted_history)
-        response = chat.send_message(messages[-1]["content"])
-        return response.text
+        completion = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[{"role": "system", "content": SYSTEM_PROMPT}] + 
+                     [{"role": m["role"], "content": m["content"]} for m in messages],
+            temperature=0.7,
+        )
+        return completion.choices[0].message.content
     except Exception as e:
-        return f"Хм, что-то пошло не так. Давай попробуем еще раз? (Ошибка: {str(e)})"
+        return f"Ой, мои мысли запутались... Давай еще раз? (Ошибка: {str(e)})"
 
 st.set_page_config(page_title="Akylman AI 2.0", page_icon="🧠")
-st.title("Akylman AI")
+st.title("Akylman AI (Powered by Groq)")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
