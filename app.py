@@ -4,10 +4,11 @@ import random
 from datetime import datetime
 
 GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
-MODEL_NAME = "gemini-1.5-pro"
-SYSTEM_PROMPT = "Ты — Akylman AI, мудрый наставник. Ты всегда начинаешь диалог первым. Ты человечный, ироничный и умный."
+MODEL_NAME = "gemini-1.5-flash"
+SYSTEM_PROMPT = "Ты — Akylman AI, мудрый наставник. Ты всегда начинаешь диалог первым. Ты человечный, ироничный и умный. Твои ответы должны быть глубокими, но понятными."
 
 genai.configure(api_key=GOOGLE_API_KEY)
+
 def get_opener():
     hour = datetime.now().hour
     if 5 <= hour < 12:
@@ -18,18 +19,18 @@ def get_opener():
         return "Добрый вечер. Как прошел день? Давай обсудим что-нибудь важное."
 
 def generate_response(messages):
-    model = genai.GenerativeModel(model_name=MODEL_NAME, system_instruction=SYSTEM_PROMPT)
-    formatted_history = []
-    for msg in messages[:-1]:
-        role = "user" if msg["role"] == "user" else "model"
-        formatted_history.append({"role": role, "parts": [msg["content"]]})
-    
-    chat = model.start_chat(history=formatted_history)
     try:
+        model = genai.GenerativeModel(model_name=MODEL_NAME, system_instruction=SYSTEM_PROMPT)
+        formatted_history = []
+        for msg in messages[:-1]:
+            role = "user" if msg["role"] == "user" else "model"
+            formatted_history.append({"role": role, "parts": [msg["content"]]})
+        
+        chat = model.start_chat(history=formatted_history)
         response = chat.send_message(messages[-1]["content"])
         return response.text
     except Exception as e:
-        return f"Ошибка: {str(e)}"
+        return f"Хм, что-то пошло не так. Давай попробуем еще раз? (Ошибка: {str(e)})"
 
 st.set_page_config(page_title="Akylman AI 2.0", page_icon="🧠")
 st.title("Akylman AI")
