@@ -12,11 +12,11 @@ client = Groq(api_key=GROQ_API_KEY)
 def get_opener():
     hour = datetime.now().hour
     if 5 <= hour < 12:
-        return "Доброе утро! Я Акылман. Готов к новым свершениям сегодня?"
+        return "Good morning! I'm Akylman. Ready for new achievements today?"
     elif 12 <= hour < 18:
-        return "Добрый день! Акылман на связи. Нужна помощь или просто беседа?"
+        return "Good day! Akylman is here. Need help or just a chat?"
     else:
-        return "Добрый вечер. Как прошел день? Давай обсудим что-нибудь важное."
+        return "Good evening. How was your day? Let's discuss something important."
 
 def generate_response(messages):
     try:
@@ -28,10 +28,24 @@ def generate_response(messages):
         )
         return completion.choices[0].message.content
     except Exception as e:
-        return f"Ой, мои мысли запутались... Давай еще раз? (Ошибка: {str(e)})"
+        return f"Oops, my thoughts got tangled... Shall we try again? (Error: {str(e)})"
 
 st.set_page_config(page_title="Akylman AI 2.0", page_icon="🧠")
-st.title("Akylman AI (Powered by Groq)")
+
+with st.sidebar:
+    st.title("🧠 Akylman AI")
+    st.markdown("---")
+    st.subheader("Settings & Tools")
+    
+    if st.button("🗑️ Clear Chat", use_container_width=True):
+        st.session_state.messages = []
+        st.rerun()
+    
+    st.markdown("---")
+    st.info("Version: 2.0 (Groq Engine)")
+    st.write("This is your wise mentor available 24/7.")
+
+st.title("Akylman AI")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -42,7 +56,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("Напиши мне..."):
+if prompt := st.chat_input("Write to Akylman..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
