@@ -7,7 +7,7 @@ from pypdf import PdfReader
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 client = Groq(api_key=GROQ_API_KEY)
 
-st.set_page_config(page_title="Akylman AI 3.0", page_icon="🧠")
+st.set_page_config(page_title="Akylman AI", page_icon="🧠")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -16,15 +16,22 @@ if "access_granted" not in st.session_state:
 
 def get_opener():
     hour = datetime.now().hour
-    if 5 <= hour < 12: return "Доброе утро! Я Akylman. Готов к работе?"
-    elif 12 <= hour < 18: return "Добрый день! Akylman на связи. Что нового?"
-    else: return "Добрый вечер. Давай обсудим что-нибудь важное."
+    if 5 <= hour < 12:
+        return "Доброе утро! Я Akylman. Готов к новым идеям?"
+    elif 12 <= hour < 18:
+        return "Добрый день! Akylman на связи. Чем могу помочь?"
+    else:
+        return "Добрый вечер. Давай обсудим что-нибудь мудрое."
 
-def generate_response(messages, model_id):
+def generate_response(messages, model_id, context=""):
     try:
+        system_prompt = "Ты — Akylman AI, мудрый наставник."
+        if context:
+            system_prompt += f"\nКонтекст из файла: {context}"
+            
         completion = client.chat.completions.create(
             model=model_id,
-            messages=[{"role": "system", "content": "Ты — Akylman AI, мудрый наставник."}] + 
+            messages=[{"role": "system", "content": system_prompt}] + 
                      [{"role": m["role"], "content": m["content"]} for m in messages],
         )
         return completion.choices[0].message.content
@@ -39,30 +46,29 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
-
+    
     model_options = {
         "Быстрая ⚡": "llama3-8b-8192",
         "Думающая 🤔": "llama-3.3-70b-versatile"
     }
+    
+    password = st.text_input("Пароль доступа:", type="password")
+    if password == "1234":
+        if not st.session_state.access_granted:
+            st.session_state.access_granted = True
+            st.balloons()
+        st.success("Пароль верен!")
+        model_options["Версия Pro 🔥"] = "llama-3.3-70b-specdec"
+        model_options["Версия Plus 💎"] = "mixtral-8x7b-32768"
+    elif password:
+        st.error("Пароль неверен")
+        st.session_state.access_granted = False
 
-    password = st.text_input("Введи пароль доступа:", type="password")
-    if password:
-            if not st.session_state.access_granted:
-                st.session_state.access_granted = True
-                st.success("Пароль верен!")
-                st.balloons() 
-            
-            model_options["Версия Про 🔥"] = "llama-3.1-70b-specdec"
-            model_options["Версия Плюс 💎"] = "mixtral-8x7b-32768"
-        else:
-            st.error("Пароль неверен")
-            st.session_state.access_granted = False
-
-    selected_model_name = st.selectbox("Выберите модель:", list(model_options.keys()))
+    selected_model_name = st.selectbox("Модель:", list(model_options.keys()))
     selected_model = model_options[selected_model_name]
 
     st.markdown("---")
-    uploaded_file = st.file_uploader("📂 Анализ файлов", type=["pdf", "txt"])
+    uploaded_file = st.file_uploader("📂 Загрузить файл", type=["pdf", "txt"])
 
 st.markdown("<h1 style='text-align: center;'>Akylman</h1>", unsafe_allow_html=True)
 
@@ -75,12 +81,20 @@ for msg in st.session_state.messages:
         st.markdown(msg["content"])
 
 if prompt := st.chat_input("Спроси Akylman..."):
+    file_context = ""
+    if uploaded_file:
+        if uploaded_file.type == "application/pdf":
+            reader = PdfReader(uploaded_file)
+            file_context = " ".join([page.extract_text() for page in reader.pages])
+        else:
+            file_context = uploaded_file.read().decode("utf-8")
+
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
         with st.spinner("Размышляю..."):
-            res = generate_response(st.session_state.messages, selected_model)
+            res = generate_response(st.session_state.messages, selected_model, file_context)
             st.markdown(res)
     st.session_state.messages.append({"role": "assistant", "content": res})
