@@ -1,4 +1,5 @@
 groq
 streamlit
-pypdf
 duckduckgo-search
+pypdf
+streamlit-google-auth
