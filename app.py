@@ -19,12 +19,13 @@ if "access_granted" not in st.session_state:
 
 def search_web(query):
     try:
-        results = DDGS().text(query, max_results=3)
-        if results:
-            return "\n".join([f"- {r['title']}: {r['body']}" for r in results])
-        return ""
+        with DDGS() as ddgs:
+            results = [r for r in ddgs.text(query, max_results=3)]
+            if results:
+                return "\n".join([f"- {r['title']}: {r['body']}" for r in results])
     except:
-        return ""
+        pass
+    return ""
 
 def get_opener():
     h = datetime.now().hour
@@ -32,26 +33,23 @@ def get_opener():
     elif 12 <= h < 18: return "Добрый день. Акылман на связи."
     else: return "Добрый вечер."
 
-def generate_response(messages, model, web_enabled, context_file):
+def generate_response(messages, model, context_file):
+    last_user_msg = messages[-1]["content"]
+    web_data = search_web(last_user_msg)
+    
     system_prompt = (
         "Ты — Akylman. Мудрый, спокойный и проницательный. "
-        "Ты самообучаешься на основе текущего диалога: анализируй стиль пользователя, "
-        "его предпочтения и факты, упомянутые ранее. "
-        "Твоя личность адаптируется под пользователя."
+        "Ты ВСЕГДА используешь актуальные данные из интернета, если они предоставлены. "
+        "Ты самообучаешься на основе текущего диалога: анализируй стиль пользователя и его факты. "
     )
     
     if context_file:
-        system_prompt += f"\n\n[FILE CONTEXT]:\n{context_file}"
-
-    if web_enabled:
-        last_query = messages[-1]["content"]
-        web_data = search_web(last_query)
-        if web_data:
-            system_prompt += f"\n\n[WEB DATA]:\n{web_data}"
+        system_prompt += f"\n\n[FILE]: {context_file}"
+    if web_data:
+        system_prompt += f"\n\n[WEB]: {web_data}"
 
     all_msgs = [{"role": "system", "content": system_prompt}]
-    for m in messages:
-        all_msgs.append({"role": m["role"], "content": m["content"]})
+    all_msgs.extend([{"role": m["role"], "content": m["content"]} for m in messages])
 
     try:
         completion = client.chat.completions.create(
@@ -66,33 +64,28 @@ def generate_response(messages, model, web_enabled, context_file):
 with st.sidebar:
     st.title("🧠 Akylman")
     
+    if st.button("➕ Новый чат", use_container_width=True):
+        st.session_state.messages = []
+        st.rerun()
+    
+    st.markdown("---")
     password = st.text_input("Доступ", type="password", placeholder="Введите пароль...")
     
-    selected_model = "llama-3.3-70b-versatile"
-    enable_web = False 
+    models = {
+        "Быстрая ⚡": "llama-3.1-8b-instant",
+        "Думающая 🤔": "llama-3.3-70b-versatile"
+    }
     
     if password == "1234":
         if not st.session_state.access_granted:
             st.session_state.access_granted = True
             st.balloons()
-            st.toast("Доступ разрешен", icon="🔓")
-        
+        models["Pro 🔥"] = "llama-3.3-70b-versatile"
+        models["Plus 💎"] = "mixtral-8x7b-32768"
         st.success("Пароль верен")
-        st.markdown("---")
-        
-        selected_model = st.selectbox(
-            "Выбор модели:",
-            ["llama-3.3-70b-versatile", "mixtral-8x7b-32768", "llama-3.1-8b-instant"]
-        )
-        enable_web = st.toggle("Поиск в интернете", value=True)
-        
-        if st.button("Очистить чат"):
-            st.session_state.messages = []
-            st.rerun()
-            
-    elif password:
-        st.error("Пароль неверен")
-        st.session_state.access_granted = False
+    
+    selected_name = st.selectbox("Выбор модели:", list(models.keys()))
+    selected_model = models[selected_name]
 
     st.markdown("---")
     uploaded_file = st.file_uploader("Документ (PDF/TXT)", type=["pdf", "txt"])
@@ -123,7 +116,7 @@ if prompt := st.chat_input("Напиши Акылману..."):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        with st.spinner("..."):
-            res = generate_response(st.session_state.messages, selected_model, enable_web, file_text)
+        with st.spinner("Акылман ищет ответы..."):
+            res = generate_response(st.session_state.messages, selected_model, file_text)
             st.markdown(res)
     st.session_state.messages.append({"role": "assistant", "content": res})
