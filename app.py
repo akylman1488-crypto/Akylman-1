@@ -46,9 +46,8 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
-    
     model_options = {
-        "Быстрая ⚡": "llama3-8b-8192",
+        "Быстрая ⚡": "llama-3.1-8b-instant",
         "Думающая 🤔": "llama-3.3-70b-versatile"
     }
     
@@ -58,7 +57,7 @@ with st.sidebar:
             st.session_state.access_granted = True
             st.balloons()
         st.success("Пароль верен!")
-        model_options["Версия Pro 🔥"] = "llama-3.3-70b-specdec"
+        model_options["Версия Pro 🔥"] = "llama-3.3-70b-specdec" 
         model_options["Версия Plus 💎"] = "mixtral-8x7b-32768"
     elif password:
         st.error("Пароль неверен")
