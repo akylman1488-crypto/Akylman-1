@@ -3,3 +3,4 @@ streamlit
 supabase
 duckduckgo-search
 pypdf
+st-gsheets-connection
