@@ -81,7 +81,6 @@ with st.sidebar:
             st.session_state.access_granted = True
             st.balloons()
         models["Pro 🔥"] = "llama-3.3-70b-versatile"
-        models["Plus 💎"] = "mixtral-8x7b-32768"
         st.success("Пароль верен")
     
     selected_name = st.selectbox("Выбор модели:", list(models.keys()))
