@@ -1,128 +1,113 @@
 import streamlit as st
 from groq import Groq
+from supabase import create_client
 from duckduckgo_search import DDGS
 from pypdf import PdfReader
 from datetime import datetime
-from streamlit_google_auth import Authenticate
 
-st.set_page_config(page_title="Akylman AI", page_icon="🧠", layout="centered")
+st.set_page_config(page_title="Akylman AI", page_icon="🧠")
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+
+if "user" not in st.session_state:
+    st.session_state.user = None
 if "access_granted" not in st.session_state:
     st.session_state.access_granted = False
 
-authenticator = Authenticate(
-    secret_credentials_path='google_credentials.json',
-    cookie_name='akylman_auth',
-    cookie_key='akylman_secret_key',
-    cookie_expiry_days=30,
-)
+def load_history(user_id):
+    res = supabase.table("chat_history").select("*").eq("user_id", user_id).order("created_at").execute()
+    return [{"role": r["role"], "content": r["content"]} for r in res.data]
 
-authenticator.check_authenticity()
-
-if not st.session_state.get('connected'):
-    st.markdown("<h1 style='text-align: center;'>Akylman AI</h1>", unsafe_allow_html=True)
-    st.info("Пожалуйста, войдите, чтобы начать обучение.")
-    authenticator.login()
-    st.stop()
-
-user_info = st.session_state.get('user_info')
-user_name = user_info.get('name')
-
-client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+def save_message(user_id, role, content):
+    supabase.table("chat_history").insert({"user_id": user_id, "role": role, "content": content}).execute()
 
 def search_web(query):
     try:
         with DDGS() as ddgs:
-            results = [r for r in ddgs.text(query, max_results=3)]
-            if results:
-                return "\n".join([f"- {r['title']}: {r['body']}" for r in results])
-    except:
-        pass
-    return ""
+            res = [r for r in ddgs.text(query, max_results=3)]
+            return "\n".join([f"- {r['title']}: {r['body']}" for r in res]) if res else ""
+    except: return ""
 
-def generate_response(messages, model, context_file):
-    last_query = messages[-1]["content"]
-    web_data = search_web(last_query)
-    
-    system_prompt = (
-        f"Ты — Akylman. Твой собеседник: {user_name}. "
-        "Ты самообучаешься на основе этого диалога. "
-        "Всегда используй актуальные данные из интернета, если они предоставлены."
-    )
-    
+def generate_response(messages, model, context_file, user_name):
+    web_data = search_web(messages[-1]["content"])
+    system_prompt = f"Ты — Akylman. Твой собеседник: {user_name}. Ты самообучаешься и используешь интернет."
     if context_file: system_prompt += f"\n\n[FILE]: {context_file}"
     if web_data: system_prompt += f"\n\n[WEB]: {web_data}"
-
-    all_msgs = [{"role": "system", "content": system_prompt}]
-    all_msgs.extend([{"role": m["role"], "content": m["content"]} for m in messages])
-
+    
+    all_msgs = [{"role": "system", "content": system_prompt}] + messages
     try:
-        completion = client.chat.completions.create(
-            model=model,
-            messages=all_msgs,
-            temperature=0.7
-        )
-        return completion.choices[0].message.content
-    except Exception as e:
-        return f"Ошибка: {e}"
+        comp = client.chat.completions.create(model=model, messages=all_msgs, temperature=0.7)
+        return comp.choices[0].message.content
+    except Exception as e: return f"Ошибка: {e}"
+
+if not st.session_state.user:
+    st.title("Вход в Akylman AI")
+    email = st.text_input("Email")
+    pwd = st.text_input("Пароль", type="password")
+    col1, col2 = st.columns(2)
+    
+    if col1.button("Войти"):
+        try:
+            res = supabase.auth.sign_in_with_password({"email": email, "password": pwd})
+            st.session_state.user = res.user
+            st.rerun()
+        except: st.error("Неверный логин или пароль")
+        
+    if col2.button("Регистрация"):
+        try:
+            res = supabase.auth.sign_up({"email": email, "password": pwd})
+            st.success("Проверьте почту для подтверждения!")
+        except: st.error("Ошибка регистрации")
+    st.stop()
+
+user = st.session_state.user
+if "messages" not in st.session_state:
+    st.session_state.messages = load_history(user.id)
 
 with st.sidebar:
-    st.title(f"🧠 Akylman")
-    st.write(f"Пользователь: **{user_name}**")
-    
+    st.title("🧠 Akylman")
+    st.write(f"Юзер: {user.email}")
     if st.button("➕ Новый чат", use_container_width=True):
+        supabase.table("chat_history").delete().eq("user_id", user.id).execute()
         st.session_state.messages = []
         st.rerun()
     
     st.markdown("---")
-    pwd = st.text_input("Доступ", type="password", placeholder="Код...")
-    
-    models = {
-        "Быстрая ⚡": "llama-3.1-8b-instant",
-        "Думающая 🤔": "llama-3.3-70b-versatile"
-    }
-    
-    if pwd == "1234":
+    unlock = st.text_input("Доступ", type="password")
+    models = {"Быстрая ⚡": "llama-3.1-8b-instant", "Думающая 🤔": "llama-3.3-70b-versatile"}
+    if unlock == "1234":
         if not st.session_state.access_granted:
             st.session_state.access_granted = True
             st.balloons()
-        models["Pro 🔥"] = "llama-3.3-70b-versatile"
-        st.success("Pro-режим активен")
+        models.update({"Pro 🔥": "llama-3.3-70b-versatile", "Plus 💎": "mixtral-8x7b-32768"})
     
-    sel_model = st.selectbox("Модель:", list(models.keys()))
-    active_model = models[sel_model]
-
-    st.markdown("---")
-    up_file = st.file_uploader("Документ (PDF/TXT)", type=["pdf", "txt"])
-    
-    if st.button("Выйти из системы"):
-        authenticator.logout()
+    sel_model = models[st.selectbox("Модель:", list(models.keys()))]
+    up_file = st.file_uploader("Файл (PDF/TXT)", type=["pdf", "txt"])
+    if st.button("Выход"):
+        st.session_state.user = None
+        st.rerun()
 
 st.markdown("<h1 style='text-align: center;'>Akylman</h1>", unsafe_allow_html=True)
 
 for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+    with st.chat_message(msg["role"]): st.markdown(msg["content"])
 
-if prompt := st.chat_input("Спроси что-нибудь..."):
+if prompt := st.chat_input("Напиши Акылману..."):
     f_text = ""
     if up_file:
         try:
-            if up_file.type == "application/pdf":
-                reader = PdfReader(up_file)
-                f_text = " ".join([p.extract_text() for p in reader.pages if p.extract_text()])
-            else:
-                f_text = up_file.read().decode("utf-8")
+            reader = PdfReader(up_file)
+            f_text = " ".join([p.extract_text() for p in reader.pages if p.extract_text()])
         except: pass
 
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    save_message(user.id, "user", prompt)
+    with st.chat_message("user"): st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        with st.spinner("Акылман думает..."):
-            ans = generate_response(st.session_state.messages, active_model, f_text)
+        with st.spinner("..."):
+            ans = generate_response(st.session_state.messages, sel_model, f_text, user.email)
             st.markdown(ans)
+            save_message(user.id, "assistant", ans)
     st.session_state.messages.append({"role": "assistant", "content": ans})
