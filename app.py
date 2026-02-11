@@ -95,27 +95,24 @@ if prompt := st.chat_input("Напиши мне..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"): st.markdown(prompt)
 
-    with st.chat_message("assistant"):
-        web_info = search_web(prompt)
-        sys_msg = f"Ты Akylman. Юзер: {st.session_state.user or 'Гость'}. Инфо из сети: {web_info}"
-
+with st.chat_message("assistant"):
+        placeholder = st.empty() 
         full_response = ""
-        placeholder = st.empty()
+
+        stream = client.chat.completions.create(
+            model=sel_model,
+            messages=[{"role": "system", "content": "Ты Akylman..."}] + st.session_state.messages,
+            stream=True
+        )
         
-        try:
-            stream = client.chat.completions.create(
-                model=sel_model,
-                messages=[{"role": "system", "content": sys_msg}] + st.session_state.messages,
-                stream=True
-            )
-            
-            for chunk in stream:
-                if chunk.choices[0].delta.content:
-                    full_response += chunk.choices[0].delta.content
-                    placeholder.markdown(full_response + "▌")
-            
-            placeholder.markdown(full_response)
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
+        for chunk in stream:
+            content = chunk.choices[0].delta.content
+            if content:
+                full_response += content
+                placeholder.markdown(full_response + "▌")
+        
+        placeholder.markdown(full_response) # Финальный текст без каретки
+        st.session_state.messages.append({"role": "assistant", "content": full_response})
             
         except Exception as e:
             st.error(f"Ошибка: {e}")
