@@ -14,7 +14,6 @@ try:
     from roadmap_gen import generate_roadmap
     from timer_module import study_timer
     from debate_logic import get_debate_response
-    from image_gen import generate_image_ui
     # Заглушки для библиотек, которых пока может не быть
     # from scholar_search import search_educational
     # from analyzer import display_metrics
