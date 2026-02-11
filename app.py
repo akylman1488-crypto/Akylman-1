@@ -17,7 +17,7 @@ from exporter import export_to_markdown
 from styles import apply_dynamic_theme
 
 with st.sidebar:
-    subject = st.selectbox("Предмет:", list(SUBJECTS.keys())
+    subject = st.selectbox("Предмет:", list(SUBJECTS.keys()))
     apply_dynamic_theme(subject)
 
 st.set_page_config(page_title="Akylman Ultra Pro", layout="wide")
