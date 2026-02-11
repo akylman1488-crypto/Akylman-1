@@ -19,54 +19,54 @@ def search_web(query):
             res = [r for r in ddgs.text(query, max_results=3)]
             return "\n".join([f"- {r['title']}: {r['body']}" for r in res])
     except: return ""
-
-header_col, user_col = st.columns([7, 3])
-with header_col:
+h_col, a_col = st.columns([8, 2])
+with h_col:
     st.markdown("# Akylman AI")
 
-with user_col:
+with a_col:
     if st.session_state.user:
-        # Если залогинен, показываем ник и кнопку выхода
-        st.success(f"👤 Аккаунт: **{st.session_state.user}**")
+        st.success(f"👤 {st.session_state.user}")
         if st.button("Выйти", use_container_width=True):
             st.session_state.user = None
             st.session_state.messages = []
             st.rerun()
     else:
-        # Если не залогинен, показываем кнопку открытия входа
         if st.button("Вход / Регистрация", use_container_width=True):
             st.session_state.show_auth = not st.session_state.get("show_auth", False)
 
 if not st.session_state.user and st.session_state.get("show_auth"):
     with st.container(border=True):
-        login_input = st.text_input("Логин")
-        pwd_input = st.text_input("Пароль", type="password")
+        login_in = st.text_input("Логин")
+        pwd_in = st.text_input("Пароль", type="password")
         c1, c2 = st.columns(2)
         
         try:
             df = conn.read()
+            for col in ['login', 'password', 'history']:
+                if col not in df.columns:
+                    df[col] = ""
         except:
             st.error("Ошибка подключения к таблице!")
             st.stop()
-            
+
         if c1.button("Войти", use_container_width=True):
-            user_row = df[(df['login'].astype(str) == str(login_input)) & (df['password'].astype(str) == str(pwd_input))]
+            user_row = df[(df['login'].astype(str) == str(login_in)) & (df['password'].astype(str) == str(pwd_in))]
             if not user_row.empty:
-                st.session_state.user = login_input
+                st.session_state.user = login_in
                 hist = user_row.iloc[0]['history']
                 try: st.session_state.messages = eval(hist) if hist else []
                 except: st.session_state.messages = []
                 st.session_state.show_auth = False
                 st.rerun()
-            else: st.error("Неверный логин или пароль")
+            else: st.error("Неверные данные")
 
         if c2.button("Регистрация", use_container_width=True):
-            if login_input and pwd_input:
-                if str(login_input) not in df['login'].astype(str).values:
-                    new_u = pd.DataFrame([{"login": str(login_input), "password": str(pwd_input), "history": "[]"}])
+            if login_in and pwd_in:
+                if str(login_in) not in df['login'].astype(str).values:
+                    new_u = pd.DataFrame([{"login": str(login_in), "password": str(pwd_in), "history": "[]"}])
                     conn.update(data=pd.concat([df, new_u], ignore_index=True))
-                    st.success(f"Аккаунт {login_input} создан! Теперь нажмите 'Войти'.")
-                else: st.warning("Логин уже занят")
+                    st.success(f"Юзер {login_in} создан! Теперь войдите.")
+                else: st.warning("Логин занят")
 
 with st.sidebar:
     st.title("⚙️ Настройки")
@@ -81,26 +81,26 @@ with st.sidebar:
     
     st.markdown("---")
 
-    code = st.text_input("Код доступа к Pro", type="password")
-
-    avail_models = {
-        "Быстрая ⚡": "llama-3.1-8b-instant", 
+    access_pwd = st.text_input("Код доступа (Pro/Plus)", type="password")
+    
+    models = {
+        "Быстрая ⚡": "llama-3.1-8b-instant",
         "Думающая 🤔": "llama-3.3-70b-versatile"
     }
     
-    if code == "1234": # Твой секретный код
+    if access_pwd == "1234":
         if not st.session_state.access_granted:
-            st.balloons()
+            st.balloons() # САЛЮТЫ!
             st.session_state.access_granted = True
-        avail_models.update({
-            "Pro 🔥": "llama-3.3-70b-versatile", 
+        st.success("Доступ открыт!")
+        models.update({
+            "Pro 🔥": "llama-3.3-70b-versatile",
+            "Plus 💎": "mixtral-8x7b-32768"
         })
-        st.success("Доступ к Pro открыт!")
     
-    sel_model = avail_models[st.selectbox("Выберите мозг:", list(avail_models.keys()))]
-    st.caption("🌐 Поиск в интернете активен всегда")
-    
-    up_file = st.file_uploader("Добавить файл в контекст", type=["pdf", "txt"])
+    sel_model = models[st.selectbox("Модель:", list(models.keys()))]
+    st.info("🌐 Поиск в интернете: ВСЕГДА")
+    up_file = st.file_uploader("Добавить контекст (PDF/TXT)", type=["pdf", "txt"])
 
 for m in st.session_state.messages:
     with st.chat_message(m["role"]): st.markdown(m["content"])
@@ -110,18 +110,18 @@ if prompt := st.chat_input("Напиши Акылману..."):
     with st.chat_message("user"): st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        with st.spinner("Акылман ищет актуальную информацию..."):
-            web_context = search_web(prompt)
-            sys_msg = f"Ты Akylman. Юзер: {st.session_state.user or 'Гость'}. Актуальные данные из сети: {web_context}"
+        with st.spinner("Акылман ищет в сети..."):
+            web_data = search_web(prompt)
+            sys_prompt = f"Ты Akylman. Юзер: {st.session_state.user or 'Гость'}. Информация из сети: {web_data}"
             
-            response = client.chat.completions.create(
+            resp = client.chat.completions.create(
                 model=sel_model,
-                messages=[{"role": "system", "content": sys_msg}] + st.session_state.messages
+                messages=[{"role": "system", "content": sys_prompt}] + st.session_state.messages
             )
-            ans = response.choices[0].message.content
+            ans = resp.choices[0].message.content
             st.markdown(ans)
             st.session_state.messages.append({"role": "assistant", "content": ans})
-
+            
             if st.session_state.user:
                 df = conn.read()
                 df.loc[df['login'].astype(str) == str(st.session_state.user), 'history'] = str(st.session_state.messages)
