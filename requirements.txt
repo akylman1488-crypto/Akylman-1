@@ -1,4 +1,5 @@
 groq
 streamlit
-supabase
 duckduckgo-search
+pypdf
+python-docx
