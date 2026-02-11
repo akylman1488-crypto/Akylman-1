@@ -11,13 +11,13 @@ from scholar_search import search_educational
 from timer_module import study_timer
 from debate_logic import get_debate_response
 from analyzer import display_metrics
-from quiz_gen import generate_quiz
+#from quiz_gen import generate_quiz
 from exporter import export_to_markdown
-from stats_dashboard import show_stats, update_stat
+#from stats_dashboard import show_stats, update_stat
 from styles import apply_dynamic_theme
 
 with st.sidebar:
-    subject = st.selectbox("Предмет:", list(SUBJECTS.keys()))
+    subject = st.selectbox("Предмет:", list(SUBJECTS.keys())
     apply_dynamic_theme(subject)
 
 st.set_page_config(page_title="Akylman Ultra Pro", layout="wide")
