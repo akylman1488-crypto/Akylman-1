@@ -4,3 +4,4 @@ duckduckgo-search
 pypdf
 python-docx
 pandas
+numpy
