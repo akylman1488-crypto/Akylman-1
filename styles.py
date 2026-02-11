@@ -4,19 +4,21 @@ def apply_styles():
     st.markdown("""
     <style>
     .stApp {
-        background-color: #0e1117;
+        background-color: #FFFFFF;
     }
     .stChatMessage {
+        background-color: #F0F2F6;
         border-radius: 15px;
-        padding: 10px;
-        margin-bottom: 10px;
+        color: #000000;
     }
-    .stChatInput {
-        border-top: 1px solid #30363d;
+    h1, h2, h3, p, span, label {
+        color: #000000 !important;
     }
-    h1 {
-        color: #00ffcc;
-        text-shadow: 2px 2px 4px #000000;
+    .stChatInputContainer {
+        background-color: #FFFFFF;
+    }
+    .stSidebar {
+        background-color: #F8F9FB;
     }
     </style>
     """, unsafe_allow_html=True)
