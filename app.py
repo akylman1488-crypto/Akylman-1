@@ -16,11 +16,12 @@ from exporter import export_to_markdown
 #from stats_dashboard import show_stats, update_stat
 from styles import apply_dynamic_theme
 
+st.set_page_config(page_title="Akylman Ultra Pro", layout="wide")
+
 with st.sidebar:
     subject = st.selectbox("Предмет:", list(SUBJECTS.keys()))
     apply_dynamic_theme(subject)
 
-st.set_page_config(page_title="Akylman Ultra Pro", layout="wide")
 apply_styles()
 
 if "messages" not in st.session_state: st.session_state.messages = []
