@@ -15,11 +15,6 @@ from quiz_gen import generate_quiz
 from exporter import export_to_markdown
 from stats_dashboard import show_stats, update_stats
 
-else:
-    for m in st.session_state.messages:
-        with st.chat_message(m["role"]):
-            st.markdown(m["content"])
-
 st.set_page_config(page_title="Akylman Ultra Pro", layout="wide")
 apply_styles()
 
