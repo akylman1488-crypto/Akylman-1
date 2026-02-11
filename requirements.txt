@@ -1,6 +1,6 @@
 groq
 streamlit
-supabase
+pandas
 duckduckgo-search
-pypdf
-st-gsheets-connection
+gspread
+oauth2client
