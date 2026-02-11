@@ -14,11 +14,6 @@ from analyzer import display_metrics
 from quiz_gen import generate_quiz
 from exporter import export_to_markdown
 from stats_dashboard import show_stats, update_stats
-from image_gen import generate_image_ui
-
-with st.sidebar:
-    st.divider()
-    generate_image_ui()
 
 st.set_page_config(page_title="Akylman Ultra Pro", layout="wide")
 apply_styles()
