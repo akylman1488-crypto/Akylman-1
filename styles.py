@@ -15,7 +15,7 @@ def apply_styles():
         color: #000000 !important;
     }
     .stChatInputContainer {
-        background-color: #FFFFFF;
+        background-color: #000000;
     }
     .stSidebar {
         background-color: #F8F9FB;
