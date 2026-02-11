@@ -14,9 +14,6 @@ try:
     from roadmap_gen import generate_roadmap
     from timer_module import study_timer
     from debate_logic import get_debate_response
-    # Заглушки для библиотек, которых пока может не быть
-    # from scholar_search import search_educational
-    # from analyzer import display_metrics
 except ImportError as e:
     st.error(f"Ошибка импорта: {e}")
     st.stop()
@@ -28,7 +25,7 @@ if "debate_mode" not in st.session_state:
 
 with st.sidebar:
     st.title("🎓 Akylman")
-
+    
     subject = st.selectbox(
         "Предмет:", 
         list(SUBJECTS.keys()) if 'SUBJECTS' in locals() else ["General"],
@@ -38,13 +35,6 @@ with st.sidebar:
     apply_dynamic_theme(subject)
     st.divider()
     study_timer()
-    st.divider()
-
-    try:
-        generate_image_ui()
-    except:
-        st.info("Генератор картинок временно недоступен")
-        
     st.divider()
     st.session_state.debate_mode = st.toggle("🔥 Режим дебатов", value=False)
     
@@ -74,20 +64,13 @@ if prompt := st.chat_input("Задай вопрос..."):
                 if st.session_state.debate_mode:
                     response = get_debate_response(prompt, subject)
                 else:
-
-                    response = get_ai_response(
-                        prompt, 
-                        subject, 
-                        "", 
-                        "", 
-                        st.session_state.messages
-                    )
+                    response = get_ai_response(prompt, subject)
                 
                 st.markdown(response)
                 st.session_state.messages.append({"role": "assistant", "content": response})
             
             except Exception as e:
-                st.error(f"Ошибка в мозге: {e}")
+                st.error(f"Ошибка: {e}")
 
 if st.session_state.messages:
     st.divider()
@@ -96,9 +79,5 @@ if st.session_state.messages:
         download_chat_button(st.session_state.messages)
     with col2:
         if st.button("🗺 Создать Roadmap"):
-            with st.spinner("Рисую план обучения..."):
-                try:
-                    roadmap = generate_roadmap(subject)
-                    st.markdown(roadmap)
-                except:
-                    st.error("Ошибка Roadmap")
+            roadmap = generate_roadmap(subject)
+            st.markdown(roadmap)
