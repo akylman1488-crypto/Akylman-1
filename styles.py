@@ -38,3 +38,40 @@ st.markdown("""
     }
     </style>
     """, unsafe_allow_html=True)
+import streamlit as st
+
+def apply_dynamic_theme(subject):
+    from config import THEMES
+    theme = THEMES.get(subject, THEMES["Mathematics"])
+    
+    st.markdown(f"""
+        <style>
+        /* Плавный переход для всего приложения */
+        .stApp {{
+            background: {theme['grad']};
+            transition: background 0.8s ease-in-out;
+        }}
+        
+        /* Стилизация сайдбара */
+        [data-testid="stSidebar"] {{
+            background-color: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.8s ease-in-out;
+        }}
+
+        /* Плавные кнопки */
+        .stButton>button {{
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 12px;
+            transition: 0.3s;
+        }}
+        
+        .stButton>button:hover {{
+            border: 1px solid white;
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 0 15px {theme['color']};
+        }}
+        </style>
+    """, unsafe_allow_html=True)
