@@ -20,47 +20,53 @@ def search_web(query):
             return "\n".join([f"- {r['title']}: {r['body']}" for r in res])
     except: return ""
 
-h_col, a_col = st.columns([8, 2])
-with h_col: st.markdown("# Akylman AI")
-with a_col:
+header_col, user_col = st.columns([7, 3])
+with header_col:
+    st.markdown("# Akylman AI")
+
+with user_col:
     if st.session_state.user:
-        st.success(f"👤 {st.session_state.user}")
-        if st.button("Выйти"):
+        # Если залогинен, показываем ник и кнопку выхода
+        st.success(f"👤 Аккаунт: **{st.session_state.user}**")
+        if st.button("Выйти", use_container_width=True):
             st.session_state.user = None
             st.session_state.messages = []
             st.rerun()
     else:
+        # Если не залогинен, показываем кнопку открытия входа
         if st.button("Вход / Регистрация", use_container_width=True):
             st.session_state.show_auth = not st.session_state.get("show_auth", False)
 
 if not st.session_state.user and st.session_state.get("show_auth"):
     with st.container(border=True):
-        login = st.text_input("Логин")
-        pwd = st.text_input("Пароль", type="password")
+        login_input = st.text_input("Логин")
+        pwd_input = st.text_input("Пароль", type="password")
         c1, c2 = st.columns(2)
         
         try:
             df = conn.read()
         except:
-            st.error("Ошибка таблицы! Проверьте Secrets.")
+            st.error("Ошибка подключения к таблице!")
             st.stop()
             
         if c1.button("Войти", use_container_width=True):
-            user_row = df[(df['login'].astype(str) == str(login)) & (df['password'].astype(str) == str(pwd))]
+            user_row = df[(df['login'].astype(str) == str(login_input)) & (df['password'].astype(str) == str(pwd_input))]
             if not user_row.empty:
-                st.session_state.user = login
-                hist_raw = user_row.iloc[0]['history']
-                try: st.session_state.messages = eval(hist_raw) if hist_raw else []
+                st.session_state.user = login_input
+                hist = user_row.iloc[0]['history']
+                try: st.session_state.messages = eval(hist) if hist else []
                 except: st.session_state.messages = []
                 st.session_state.show_auth = False
                 st.rerun()
             else: st.error("Неверный логин или пароль")
 
         if c2.button("Регистрация", use_container_width=True):
-            if login and pwd and str(login) not in df['login'].astype(str).values:
-                new_u = pd.DataFrame([{"login": str(login), "password": str(pwd), "history": "[]"}])
-                conn.update(data=pd.concat([df, new_u], ignore_index=True))
-                st.success(f"Аккаунт {login} создан! Теперь войдите.")
+            if login_input and pwd_input:
+                if str(login_input) not in df['login'].astype(str).values:
+                    new_u = pd.DataFrame([{"login": str(login_input), "password": str(pwd_input), "history": "[]"}])
+                    conn.update(data=pd.concat([df, new_u], ignore_index=True))
+                    st.success(f"Аккаунт {login_input} создан! Теперь нажмите 'Войти'.")
+                else: st.warning("Логин уже занят")
 
 with st.sidebar:
     st.title("⚙️ Настройки")
@@ -74,20 +80,27 @@ with st.sidebar:
         st.rerun()
     
     st.markdown("---")
-    # Поле пароля доступа с салютами
-    access_code = st.text_input("Код доступа (Pro/Plus)", type="password")
-    models = {"Быстрая ⚡": "llama-3.1-8b-instant", "Думающая 🤔": "llama-3.3-70b-versatile"}
+
+    code = st.text_input("Код доступа к Pro", type="password")
+
+    avail_models = {
+        "Быстрая ⚡": "llama-3.1-8b-instant", 
+        "Думающая 🤔": "llama-3.3-70b-versatile"
+    }
     
-    if access_code == "1234": # Твой код
+    if code == "1234": # Твой секретный код
         if not st.session_state.access_granted:
             st.balloons()
             st.session_state.access_granted = True
-        st.success("Доступ открыт!")
-        models.update({"Pro 🔥": "llama-3.3-70b-versatile", "Plus 💎": "mixtral-8x7b-32768"})
+        avail_models.update({
+            "Pro 🔥": "llama-3.3-70b-versatile", 
+        })
+        st.success("Доступ к Pro открыт!")
     
-    sel_model = models[st.selectbox("Модель:", list(models.keys()))]
-    st.info("🌐 Поиск в интернете всегда включен")
-    up_file = st.file_uploader("Документ (PDF/TXT)", type=["pdf", "txt"])
+    sel_model = avail_models[st.selectbox("Выберите мозг:", list(avail_models.keys()))]
+    st.caption("🌐 Поиск в интернете активен всегда")
+    
+    up_file = st.file_uploader("Добавить файл в контекст", type=["pdf", "txt"])
 
 for m in st.session_state.messages:
     with st.chat_message(m["role"]): st.markdown(m["content"])
@@ -97,18 +110,18 @@ if prompt := st.chat_input("Напиши Акылману..."):
     with st.chat_message("user"): st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        with st.spinner("Акылман ищет в актуальном времени..."):
-            web_info = search_web(prompt)
-            sys_prompt = f"Ты Akylman. Юзер: {st.session_state.user or 'Гость'}. Актуальные данные: {web_info}"
+        with st.spinner("Акылман ищет актуальную информацию..."):
+            web_context = search_web(prompt)
+            sys_msg = f"Ты Akylman. Юзер: {st.session_state.user or 'Гость'}. Актуальные данные из сети: {web_context}"
             
             response = client.chat.completions.create(
                 model=sel_model,
-                messages=[{"role": "system", "content": sys_prompt}] + st.session_state.messages
+                messages=[{"role": "system", "content": sys_msg}] + st.session_state.messages
             )
             ans = response.choices[0].message.content
             st.markdown(ans)
             st.session_state.messages.append({"role": "assistant", "content": ans})
-            
+
             if st.session_state.user:
                 df = conn.read()
                 df.loc[df['login'].astype(str) == str(st.session_state.user), 'history'] = str(st.session_state.messages)
