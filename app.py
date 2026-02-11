@@ -1,50 +1,45 @@
 import streamlit as st
-from config import SUBJECTS
-from styles import apply_styles, apply_dynamic_theme
 
-# 1. Настройка страницы (ДОЛЖНА БЫТЬ ПЕРВОЙ СТРОКОЙ КОДА)
-st.set_page_config(page_title="Akylman Ultra Pro", layout="wide")
+st.set_page_config(
+    page_title="Gemini Style Akylman", 
+    layout="wide",
+    page_icon="✨"
+)
 
-# 2. Инициализация памяти
+try:
+    from config import SUBJECTS
+    from styles import apply_styles
+    from brain import get_ai_response
+    from data_manager import download_chat_button
+except ImportError as e:
+    st.error(f"Ошибка импорта: {e}")
+    st.stop()
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# 3. ЕДИНЫЙ Сайдбар
+apply_styles()
+
 with st.sidebar:
-    st.title("🎓 Akylman Ultra")
-    
-    # Выбор предмета
-    subject = st.selectbox("Выберите предмет:", list(SUBJECTS.keys()), key="main_subject_select")
-    
-    # Плавная тема (наша новая фишка)
-    apply_dynamic_theme(subject)
-    
-    st.markdown("---")
-    
-    # Кнопка очистки
-    if st.button("🗑 Очистить историю"):
+    st.title("Akylman")
+    subject = st.selectbox("Предмет", list(SUBJECTS.keys()))
+    if st.button("Новый чат"):
         st.session_state.messages = []
         st.rerun()
 
-    # Сюда можно будет добавить генератор картинок позже
-    # from image_gen import generate_image_ui
-    # generate_image_ui()
-
-# 4. Основной интерфейс
-apply_styles()
-st.title(f"{subject}")
-
-# Отображение чата
 for m in st.session_state.messages:
     with st.chat_message(m["role"]):
         st.markdown(m["content"])
 
-# Поле ввода
-if prompt := st.chat_input("Задай вопрос своему наставнику..."):
+if prompt := st.chat_input("Введите запрос..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
-    
-    # Здесь будет вызов твоей модели Llama или Gemini
+
     with st.chat_message("assistant"):
-        st.write("Я тебя услышал! Давай разберем тему...")
+        response = get_ai_response(prompt, subject)
+        st.markdown(response)
+        st.session_state.messages.append({"role": "assistant", "content": response})
+
+if st.session_state.messages:
+    download_chat_button(st.session_state.messages)
