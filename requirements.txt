@@ -5,3 +5,6 @@ pypdf
 python-docx
 pandas
 numpy
+google-generativeai
+requests
+pillow
