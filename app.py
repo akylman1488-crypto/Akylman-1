@@ -10,7 +10,6 @@ from roadmap_gen import generate_roadmap
 from scholar_search import search_educational
 from timer_module import study_timer
 from debate_logic import get_debate_response
-from image_gen import generate_image_ui
 from analyzer import display_metrics
 from quiz_gen import generate_quiz
 from exporter import export_to_markdown
