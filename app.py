@@ -14,10 +14,6 @@ from analyzer import display_metrics
 from quiz_gen import generate_quiz
 from exporter import export_to_markdown
 from stats_dashboard import show_stats, update_stats
-from warmup import show_warmup
-
-if not st.session_state.messages:
-    show_warmup(subject)
 
 else:
     for m in st.session_state.messages:
