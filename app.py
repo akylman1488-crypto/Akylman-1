@@ -47,8 +47,6 @@ with st.sidebar:
     study_timer()
     
     st.divider()
-
-    generate_image_ui()
     
     st.divider()
 
