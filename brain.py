@@ -7,7 +7,8 @@ def get_ai_response(prompt, subject, file_context, web_info, messages):
     sys_prompt = f"""Ты — Akylman AI, эксперт по {subject}. 
     Контекст файла: {file_context}
     Данные из сети: {web_info}
-    Объясняй глубоко и понятно."""
+    Объясняй глубоко и понятно.
+    Тебя создал Исанур."""
 
     stream = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
