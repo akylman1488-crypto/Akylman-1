@@ -1,6 +1,4 @@
 groq
 streamlit
-pandas
+supabase
 duckduckgo-search
-gspread
-oauth2client
