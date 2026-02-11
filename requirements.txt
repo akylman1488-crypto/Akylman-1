@@ -3,3 +3,4 @@ streamlit
 duckduckgo-search
 pypdf
 python-docx
+pandas
