@@ -14,7 +14,6 @@ from analyzer import display_metrics
 from quiz_gen import generate_quiz
 from exporter import export_to_markdown
 from stats_dashboard import show_stats, update_stats
-from history_manager import limit_history, get_last_response
 
 st.set_page_config(page_title="Akylman Ultra Pro", layout="wide")
 apply_styles()
