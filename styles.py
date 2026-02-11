@@ -22,3 +22,19 @@ def apply_styles():
     }
     </style>
     """, unsafe_allow_html=True)
+st.markdown("""
+    <style>
+    [data-testid="stSidebar"] {
+        background-image: url("https://www.transparenttextures.com/patterns/cubes.png"); /* Или ссылка на орнамент */
+        background-color: #0e1117;
+    }
+    .stButton>button {
+        border-radius: 20px;
+        border: 1px solid #00ffcc;
+        transition: 0.3s;
+    }
+    .stButton>button:hover {
+        box-shadow: 0 0 15px #00ffcc;
+    }
+    </style>
+    """, unsafe_allow_html=True)
