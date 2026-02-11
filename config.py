@@ -14,3 +14,4 @@ PROMPTS = {
 }
 
 MODEL_NAME = "llama-3.3-70b-versatile"
+GOOGLE_API_KEY = "AIzaSyBlpahSB8ogFJCzlZp4wFdpGLiXxQRQIHc"
