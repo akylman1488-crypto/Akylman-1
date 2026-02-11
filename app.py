@@ -39,8 +39,6 @@ with st.sidebar:
     if st.button("🗺 План обучения"):
         st.session_state.messages.append({"role": "assistant", "content": generate_roadmap(subject)})
     
-    generate_image_ui()
-    
     if st.button("📊 График"):
         create_chart("line")
         
