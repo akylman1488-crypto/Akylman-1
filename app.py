@@ -9,8 +9,15 @@ from translator import quick_translate
 from roadmap_gen import generate_roadmap
 from scholar_search import search_educational
 from timer_module import study_timer
+from debate_logic import get_debate_response
+from image_gen import generate_image_ui
+from analyzer import display_metrics
+from quiz_gen import generate_quiz
+from exporter import export_to_markdown
+from stats_dashboard import show_stats, update_stats
+from history_manager import limit_history, get_last_response
 
-st.set_page_config(page_title="Akylman Ultra", layout="wide")
+st.set_page_config(page_title="Akylman Ultra Pro", layout="wide")
 apply_styles()
 
 if "messages" not in st.session_state: st.session_state.messages = []
@@ -18,25 +25,43 @@ if "messages" not in st.session_state: st.session_state.messages = []
 with st.sidebar:
     st.title("🚀 Akylman Ultra")
     subject = st.selectbox("Предмет:", list(SUBJECTS.keys()))
-    uploaded_file = st.file_uploader("Файл:", type=['pdf', 'txt', 'docx'])
+    
+    debate_mode = st.toggle("🔥 Режим дебатов")
     
     study_timer()
+    st.divider()
     
-    if st.button("🗺 Создать план обучения"):
-        plan = generate_roadmap(subject)
-        st.session_state.messages.append({"role": "assistant", "content": plan})
+    uploaded_file = st.file_uploader("Файл:", type=['pdf', 'txt', 'docx'])
+    f_txt = extract_text(uploaded_file) if uploaded_file else ""
+    display_metrics(f_txt)
     
-    if st.button("📊 Построить график"):
+    if st.button("📝 Создать квиз"):
+        st.session_state.messages.append({"role": "assistant", "content": generate_quiz(f_txt)})
+        
+    if st.button("🗺 План обучения"):
+        st.session_state.messages.append({"role": "assistant", "content": generate_roadmap(subject)})
+    
+    generate_image_ui()
+    
+    if st.button("📊 График"):
         create_chart("line")
-    
+        
+    st.divider()
+    export_to_markdown(get_last_response())
     download_chat_button()
+    show_stats()
+    
+    if st.button("🗑 Очистить"):
+        st.session_state.messages = []
+        st.rerun()
 
-st.title(f"{SUBJECTS[subject]} {subject}")
+st.title(f"{'⚖️' if debate_mode else SUBJECTS[subject]} {subject}")
 
 for m in st.session_state.messages:
     with st.chat_message(m["role"]): st.markdown(m["content"])
 
-if prompt := st.chat_input("Спроси или попроси найти научную статью..."):
+if prompt := st.chat_input("Спроси, нарисуй или начни дебаты..."):
+    update_stats(subject)
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"): st.markdown(prompt)
 
@@ -44,10 +69,13 @@ if prompt := st.chat_input("Спроси или попроси найти нау
         placeholder = st.empty()
         full_res = ""
         
-        f_txt = extract_text(uploaded_file) if uploaded_file else ""
-        web_txt = search_web(f"{subject} {prompt}")
+        w_txt = search_web(f"{subject} {prompt}")
         
-        stream = get_ai_response(prompt, subject, f_txt, web_txt, st.session_state.messages)
+        if debate_mode:
+            stream = get_debate_response(prompt, subject, st.session_state.messages)
+        else:
+            stream = get_ai_response(prompt, subject, f_txt, w_txt, st.session_state.messages)
+            
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 full_res += chunk.choices[0].delta.content
@@ -55,3 +83,4 @@ if prompt := st.chat_input("Спроси или попроси найти нау
         
         placeholder.markdown(full_res)
         st.session_state.messages.append({"role": "assistant", "content": full_res})
+        limit_history()
