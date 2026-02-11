@@ -30,7 +30,7 @@ with st.sidebar:
     st.title("📚 Учебный центр")
     subject = st.selectbox(
         "Выберите предмет:",
-        ["Mathematics", "Physics", "Biology", "History", "ICT", "English"]
+        ["Mathematics", "Physics", "Biology", "History", "ICT", "English", "Just Friend"]
     )
     
     st.divider()
