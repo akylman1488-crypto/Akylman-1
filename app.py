@@ -1,6 +1,16 @@
 import streamlit as st
 from utils import extract_text, search_web
 from brain import get_ai_response
+from styles import apply_styles         
+from config import SUBJECTS, PROMPTS    
+from data_manager import download_chat_button 
+
+# Применяем стили
+apply_styles()
+
+with st.sidebar:
+    subject = st.selectbox("Предмет:", list(SUBJECTS.keys()))
+    download_chat_button() 
 
 st.set_page_config(page_title="Akylman AI Pro", layout="wide")
 
