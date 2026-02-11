@@ -78,4 +78,3 @@ if prompt := st.chat_input("Спроси, нарисуй или начни де�
         
         placeholder.markdown(full_res)
         st.session_state.messages.append({"role": "assistant", "content": full_res})
-        limit_history()
