@@ -19,9 +19,6 @@ try:
     from timer_module import study_timer
     from debate_logic import get_debate_response
     from analyzer import display_metrics
-    # from quiz_gen import generate_quiz          # Раскомментируй, если создал файл
-    # from exporter import export_to_markdown     # Раскомментируй, если создал файл
-    # from stats_dashboard import show_stats      # Раскомментируй, если создал файл
 except ImportError as e:
     st.error(f"Ошибка импорта библиотеки: {e}")
     st.stop()
@@ -33,23 +30,21 @@ if "debate_mode" not in st.session_state:
 
 with st.sidebar:
     st.title("🎓 Akylman")
-
+    
     subject = st.selectbox(
         "Предмет:", 
         list(SUBJECTS.keys()) if 'SUBJECTS' in locals() else ["General"],
         key="subject_select"
     )
-
+    
     apply_dynamic_theme(subject)
     
     st.divider()
-
+    
     study_timer()
     
     st.divider()
     
-    st.divider()
-
     st.session_state.debate_mode = st.toggle("🔥 Режим дебатов", value=False)
     
     if st.button("🗑 Очистить чат"):
@@ -85,6 +80,7 @@ if prompt := st.chat_input("Задай вопрос..."):
             
             except Exception as e:
                 st.error(f"Ошибка генерации: {e}")
+
 if st.session_state.messages:
     st.divider()
     col1, col2 = st.columns([1, 4])
