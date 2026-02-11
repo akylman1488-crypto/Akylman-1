@@ -43,7 +43,6 @@ with st.sidebar:
         create_chart("line")
         
     st.divider()
-    export_to_markdown(get_last_response())
     download_chat_button()
     show_stats()
     
