@@ -1,32 +1,36 @@
 import streamlit as st
-import google.generativeai as genai
-from config import GOOGLE_API_KEY
+import requests
+import io
+from PIL import Image
 
-genai.configure(api_key=GOOGLE_API_KEY)
+HF_API_URL = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
+headers = {"Authorization": "Bearer hf_your_token_here"}
 
-def generate_image(prompt):
-    try:
-
-        model = genai.ImageGenerationModel("imagen-3") 
-        result = model.generate_images(
-            prompt=prompt,
-            number_of_images=1,
-            safety_filter_level="block_some",
-            aspect_ratio="1:1"
-        )
-
-        image = result.images[0]
-        return image
-    except Exception as e:
-        return f"Ошибка доступа к Nano Banana: {e}"
+def query_hf(payload):
+    response = requests.post(HF_API_URL, headers=headers, json=payload)
+    if response.status_code != 200:
+        return None
+    return response.content
 
 def generate_image_ui():
-    st.subheader("🎨 Nano Banana Image Gen")
-    img_prompt = st.text_input("Опиши иллюстрацию для урока:")
+    st.markdown("---")
+    st.subheader("🎨 Nano Banana (Stable Mode)")
+    
+    prompt = st.text_input("Опиши картинку:", placeholder="Например: Скелет человека в полный рост")
+    
     if st.button("Сгенерировать"):
-        with st.spinner("Рисую..."):
-            res = generate_image(img_prompt)
-            if isinstance(res, str):
-                st.error(res)
+        if not prompt:
+            st.warning("Введите текст!")
+            return
+
+        with st.spinner("Нейросеть рисует..."):
+            image_bytes = query_hf({"inputs": prompt})
+            
+            if image_bytes:
+                try:
+                    image = Image.open(io.BytesIO(image_bytes))
+                    st.image(image, caption=prompt)
+                except:
+                    st.error("Ошибка обработки изображения.")
             else:
-                st.image(res._pil_image, caption=img_prompt)
+                st.error("Сервер перегружен или токен неверный.")
