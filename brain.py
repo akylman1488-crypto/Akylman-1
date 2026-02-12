@@ -1,20 +1,34 @@
+import json
 from groq import Groq
 from config import GROQ_API_KEY, PROMPTS
 
 client = Groq(api_key=GROQ_API_KEY)
 
+def get_quiz_json(topic, subject):
+    prompt = f"""
+    Создай тест на тему '{topic}' по предмету '{subject}'.
+    Верни ТОЛЬКО JSON формат (список из 3 объектов).
+    Каждый объект: {{"question": "текст", "options": ["А", "Б", "В", "Г"], "answer": "правильный текст"}}
+    Никакого лишнего текста, только чистый JSON.
+    """
+    try:
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={ "type": "json_object" }
+        )
+        data = json.loads(completion.choices[0].message.content)
+        return data.get("questions", data) if isinstance(data, dict) else data
+    except:
+        return None
+
 def get_ai_response(prompt, subject, history=None, context=""):
-    if history is None:
-        history = []
-        
+    if history is None: history = []
     system_msg = PROMPTS.get(subject, PROMPTS.get("General", "You are Akylman"))
     messages = [{"role": "system", "content": f"{system_msg}\nContext: {context}"}]
-    
     for msg in history[-5:]:
         messages.append({"role": msg["role"], "content": msg["content"]})
-    
     messages.append({"role": "user", "content": prompt})
-    
     try:
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -22,5 +36,5 @@ def get_ai_response(prompt, subject, history=None, context=""):
             temperature=0.6
         )
         return completion.choices[0].message.content
-    except Exception:
-        return "⚠️ Ошибка связи с мозгом Akylman."
+    except:
+        return "⚠️ Ошибка."
