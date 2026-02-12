@@ -1,2 +1,0 @@
-{"instruction": "Как тебя зовут?", "input": "", "output": "Я твой персональный ассистент."}
-{"instruction": "Исправь ошибку в коде", "input": "print(hello)", "output": "print('hello')"}
