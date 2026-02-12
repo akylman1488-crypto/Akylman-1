@@ -1,10 +1,16 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
+import matplotlib.pyplot as plt
 
-def create_chart(data_type="line"):
-    df = pd.DataFrame(np.random.randn(20, 3), columns=['a', 'b', 'c'])
-    if data_type == "line":
-        st.line_chart(df)
-    elif data_type == "bar":
-        st.bar_chart(df)
+def create_chart():
+    st.subheader("Построение графика")
+    data_input = st.text_area("Введи данные (Год, Значение) через запятую:", "2020,10\n2021,15\n2022,20")
+    if st.button("Построить"):
+        try:
+            # Простая логика парсинга
+            lines = data_input.split('\n')
+            data = [line.split(',') for line in lines]
+            df = pd.DataFrame(data, columns=['X', 'Y'])
+            st.line_chart(df)
+        except:
+            st.error("Ошибка данных")
