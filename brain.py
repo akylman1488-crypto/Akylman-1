@@ -5,15 +5,14 @@ client = Groq(api_key=GROQ_API_KEY)
 
 def get_ai_response(prompt, subject, history=[], context="", web_info=""):
     """
-    Универсальная функция. 
-    Аргументы history, context и web_info теперь НЕОБЯЗАТЕЛЬНЫ (имеют значения по умолчанию).
-    Это исправит ошибку 'missing 3 required positional arguments'.
+    Все аргументы после 'subject' теперь необязательны. 
+    Это исправляет ошибку TypeError из твоих логов.
     """
-    system_instruction = PROMPTS.get(subject, PROMPTS.get("General", "Ты помощник Akylman"))
+    system_instruction = PROMPTS.get(subject, PROMPTS["General"])
     
-    messages = [{"role": "system", "content": f"{system_instruction}\nКонтекст: {context}\nИнфо из сети: {web_info}"}]
+    messages = [{"role": "system", "content": f"{system_instruction}\nКонтекст: {context}\nДоп. инфо: {web_info}"}]
     
-    # Добавляем историю
+    # Берем последние 5 сообщений для памяти
     for msg in history[-5:]:
         messages.append({"role": msg["role"], "content": msg["content"]})
     
@@ -27,4 +26,4 @@ def get_ai_response(prompt, subject, history=[], context="", web_info=""):
         )
         return completion.choices[0].message.content
     except Exception as e:
-        return f"⚠️ Ошибка ИИ: {str(e)}"
+        return f"⚠️ Ошибка Akylman: {str(e)}"
