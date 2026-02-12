@@ -14,3 +14,7 @@ def get_opener():
         return random.choice(day)
     else:
         return random.choice(evening)
+def adjust_tone(text, subject):
+    if subject == "Just Friend":
+        return text.replace("Здравствуйте", "Привет").replace("Ассистент", "Друг")
+    return text
