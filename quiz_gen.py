@@ -14,6 +14,6 @@ def show_quiz_tool(subject):
     if "quiz_data" in st.session_state:
         st.info("Ответь на вопросы ниже:")
         st.markdown(st.session_state.quiz_data)
-        st.text_input("Твои ответы (например: 1А, 2Б...):", key="quiz_answers")
+        st.text_input("Твои ответы (например: 1А, 2Б...))
         if st.button("Проверить"):
             st.success("Ответы отправлены на проверку!")
