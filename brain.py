@@ -1,18 +1,13 @@
 from groq import Groq
-import streamlit as st
+from config import GROQ_API_KEY, MODELS
 
-client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+client = Groq(api_key=GROQ_API_KEY)
 
-def get_ai_response(prompt, subject, file_context, web_info, messages):
-    sys_prompt = f"""Ты — Akylman AI, эксперт по {subject}. 
-    Контекст файла: {file_context}
-    Данные из сети: {web_info}
-    Объясняй глубоко и понятно.
-    Тебя создал Исанур."""
-
-    stream = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "system", "content": sys_prompt}] + messages,
-        stream=True
-    )
-    return stream
+def get_ai_response(prompt, subject, context="", history=[]):
+    messages = [{"role": "system", "content": f"Ты Akylman, эксперт в {subject}. Отвечай человечно, глубоко, но без лишней воды. Контекст: {context}"}]
+    for m in history[-5:]:
+        messages.append({"role": m["role"], "content": m["content"]})
+    messages.append({"role": "user", "content": prompt})
+    
+    completion = client.chat.completions.create(model=MODELS["Fast"], messages=messages, temperature=0.6)
+    return completion.choices[0].message.content
