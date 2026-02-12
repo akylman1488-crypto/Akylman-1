@@ -5,51 +5,64 @@ def apply_styles():
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&display=swap');
 
+        /* Основной фон - белый */
         html, body, [class*="st-"] {
             font-family: 'Google Sans', sans-serif;
-        }
-
-        .stApp {
             background-color: #ffffff;
+            color: #1f1f1f;
         }
 
+        /* Сайдбар - светло-серый */
         [data-testid="stSidebar"] {
-            background-color: #f8f9fa;
-            border-right: 1px solid #e3e3e3;
+            background-color: #f0f4f9;
+            border-right: none;
         }
 
+        /* Убираем стандартные отступы */
+        .block-container {
+            padding-top: 2rem;
+            padding-bottom: 5rem;
+        }
+
+        /* Сообщения чата */
         .stChatMessage {
             background-color: transparent !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
+            border: none !important;
         }
 
+        /* Аватар пользователя */
         [data-testid="stChatMessageAvatarUser"] {
-            background-color: #5f6368 !important;
+            background-color: #eceff1 !important;
+            color: #000;
         }
 
+        /* Аватар ассистента (градиент) */
         [data-testid="stChatMessageAvatarAssistant"] {
             background: linear-gradient(135deg, #4285f4, #9b72cb, #d96570);
         }
 
-        .stChatInputContainer {
-            padding-bottom: 2rem;
-            background-color: transparent !important;
-        }
-
+        /* Поле ввода (закругленное) */
         .stChatInput {
-            border-radius: 28px !important;
-            border: 1px solid #747775 !important;
+            border-radius: 24px !important;
+            border: 1px solid #c4c7c5 !important;
             padding: 10px 20px !important;
         }
-
+        
+        /* Кнопки в сайдбаре */
         .stButton>button {
             border-radius: 20px;
-            text-transform: none;
-            font-weight: 500;
+            width: 100%;
+            border: 1px solid #e3e3e3;
+            background: white;
+            color: #444746;
+        }
+        .stButton>button:hover {
+            background: #f0f4f9;
+            border-color: #0b57d0;
+            color: #0b57d0;
         }
         </style>
     """, unsafe_allow_html=True)
 
 def apply_dynamic_theme(subject):
-    pass
+    pass # В стиле Gemini тема статичная (белая), меняется только контент
