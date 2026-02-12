@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="Akylman Ultra", layout="wide")
+st.set_page_config(page_title="Akylman Ultra Pro", layout="wide")
 
 from config import SUBJECTS
 from styles import apply_styles
@@ -16,22 +16,22 @@ if "tool_mode" not in st.session_state: st.session_state.tool_mode = "Chat"
 
 with st.sidebar:
     st.title("✨ Akylman")
-    subject = st.selectbox("Урок:", list(SUBJECTS.keys()), key="sub_select")
+    subject = st.selectbox("Предмет:", list(SUBJECTS.keys()), key="app_sub")
     
     st.divider()
-    if st.button("🧠 Разминка", use_container_width=True, key="btn_warmup"):
+    if st.button("🧠 Разминка", use_container_width=True):
         show_warmup()
     
-    if st.button("📝 Создать тест", use_container_width=True, key="btn_quiz"):
+    if st.button("📝 Тест", use_container_width=True):
         st.session_state.tool_mode = "Quiz"
     
-    if st.button("💬 Чат", use_container_width=True, key="btn_chat"):
+    if st.button("💬 Чат", use_container_width=True):
         st.session_state.tool_mode = "Chat"
 
     st.divider()
-    uploaded_file = st.file_uploader("📂 Файлы", type=['pdf', 'docx'], key="f_up")
+    up_file = st.file_uploader("Файлы:", type=['pdf', 'docx'], key="app_file")
     
-    if st.button("🗑 Очистить", key="btn_clear"):
+    if st.button("🗑 Очистить"):
         st.session_state.messages = []
         st.rerun()
 
@@ -44,13 +44,12 @@ else:
         with st.chat_message(m["role"]):
             st.markdown(m["content"])
 
-    if prompt := st.chat_input("Спроси Akylman..."):
+    if prompt := st.chat_input("Напиши сообщение..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+        with st.chat_message("user"): st.markdown(prompt)
         
         with st.chat_message("assistant"):
-            ctx = extract_text(uploaded_file) if uploaded_file else ""
+            ctx = extract_text(up_file) if up_file else ""
             resp = get_ai_response(prompt, subject, st.session_state.messages, ctx)
             st.markdown(resp)
             st.session_state.messages.append({"role": "assistant", "content": resp})
