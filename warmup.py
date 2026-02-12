@@ -1,23 +1,23 @@
 import streamlit as st
 import random
 
-@st.dialog("🧠 Ежедневная разминка")
+@st.dialog("🧠 Разминка для мозга")
 def show_warmup():
-    if "warmup_a" not in st.session_state:
-        st.session_state.warmup_a = random.randint(10, 50)
-        st.session_state.warmup_b = random.randint(10, 50)
+    if "w_a" not in st.session_state:
+        st.session_state.w_a = random.randint(10, 50)
+        st.session_state.w_b = random.randint(10, 50)
     
-    a, b = st.session_state.warmup_a, st.session_state.warmup_b
-    st.write(f"Реши пример, чтобы активировать мозг:")
-    st.subheader(f"{a} + {b} = ?")
+    a, b = st.session_state.w_a, st.session_state.w_b
+    st.write(f"Сколько будет: **{a} + {b}**?")
     
-    user_ans = st.text_input("Твой ответ", key="warmup_input")
+    ans = st.text_input("Введите ответ:", key="w_input")
     
     if st.button("Проверить"):
-        if user_ans == str(a + b):
-            st.success("🎉 Правильно! Ты готов к учебе.")
-            # Сброс для следующего раза
-            del st.session_state.warmup_a
-            del st.session_state.warmup_b
+        if ans == str(a + b):
+            st.success("🎯 Верно! Вы молодец.")
+            # Чистим для следующего раза
+            del st.session_state.w_a
+            del st.session_state.w_b
+            st.balloons()
         else:
-            st.error("Попробуй еще раз!")
+            st.error("❌ Не совсем так. Попробуйте еще раз!")
