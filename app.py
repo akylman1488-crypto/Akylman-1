@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="Akylman Ultra Pro", layout="wide")
+st.set_page_config(page_title="Akylman Ultra", layout="wide")
 
 from config import SUBJECTS
 from styles import apply_styles
