@@ -1,4 +1,5 @@
 import json
+import os
 from groq import Groq
 from config import GROQ_API_KEY, PROMPTS
 
@@ -24,11 +25,16 @@ def get_quiz_json(topic, subject):
 
 def get_ai_response(prompt, subject, history=None, context=""):
     if history is None: history = []
+        
     system_msg = PROMPTS.get(subject, PROMPTS.get("General", "You are Akylman"))
+    
     messages = [{"role": "system", "content": f"{system_msg}\nContext: {context}"}]
+    
     for msg in history[-5:]:
         messages.append({"role": msg["role"], "content": msg["content"]})
+    
     messages.append({"role": "user", "content": prompt})
+    
     try:
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
