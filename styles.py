@@ -1,6 +1,9 @@
 import streamlit as st
 
 def apply_styles():
+    st.markdown('<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">', unsafe_allow_html=True)
+    
+def apply_styles():
     st.markdown("""
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap');
