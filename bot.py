@@ -4,7 +4,7 @@ from config import TELEGRAM_TOKEN
 from brain import get_ai_response
 from behavior import get_opener, adjust_tone # Твои уникальные функции
 
-bot = Bot(token=TELEGRAM_TOKEN)
+bot = Bot(token="8254047539:AAFeaxdkLi1jhpV6SwCigh1Z_8IDz3ZKJQ")
 dp = Dispatcher()
 
 @dp.message(F.text == "/start")
