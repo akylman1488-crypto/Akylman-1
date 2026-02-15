@@ -1,6 +1,6 @@
 import asyncio
 from aiogram import Bot, Dispatcher, types, F
-from config import TELEGRAM_TOKEN, SUBJECTS
+from config import TELEGRAM_TOKEN
 from brain import get_ai_response
 from behavior import get_opener, adjust_tone # Твои уникальные функции
 
