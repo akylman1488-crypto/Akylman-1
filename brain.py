@@ -42,6 +42,6 @@ def get_ai_response(prompt, subject, history=None, context=""):
             temperature=0.6
         )
         return completion.choices[0].message.content
-   except Exception as e:
+    except Exception as e:
         return f"Ошибка: {e}"
 
