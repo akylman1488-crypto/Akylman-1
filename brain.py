@@ -3,7 +3,7 @@ import os
 from groq import Groq
 from config import GROQ_API_KEY, PROMPTS
 
-def get_ai_response(prompt, subject="General", history=None, context=""):
+def get_ai_response(prompt, subject=, history=None, context=""):
     if history is None: 
         history = []
 
