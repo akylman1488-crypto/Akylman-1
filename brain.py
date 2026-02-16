@@ -43,4 +43,4 @@ def get_ai_response(prompt, subject, history=None, context=""):
         )
         return completion.choices[0].message.content
     except:
-        return "⚠️ Ошибка."
+        return "⚠️ Ошибка {e}."
