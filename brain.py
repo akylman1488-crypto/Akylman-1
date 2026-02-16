@@ -3,10 +3,6 @@ import os
 from groq import Groq
 from config import GROQ_API_KEY, PROMPTS
 
-def get_ai_response(prompt, subject=, history=None, context=""):
-    if history is None: 
-        history = []
-
 client = Groq(api_key=GROQ_API_KEY)
 
 def get_quiz_json(topic, subject):
