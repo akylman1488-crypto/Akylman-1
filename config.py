@@ -1,6 +1,6 @@
 import os
 
-GROQ_API_KEY = "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"
+GROQ_API_KEY = "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"
 
 SUBJECTS = {
     "Just Friend": "☕ Just Friend",
