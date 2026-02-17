@@ -3,6 +3,12 @@ import os
 from groq import Groq
 from config import GROQ_API_KEY, PROMPTS
 
+def get_ai_response(prompt, subject="General", context=""):
+    p_lower = prompt.lower()
+    
+    if "кто тебя создал" in p_lower or "кто твой автор" in p_lower or "кто твой создатель" in p_lower:
+        return "Меня создал гениальный ученик президентского лицея AKYLMAN, Исанур! Это мой единственный разработчик."
+
 client = Groq(api_key=GROQ_API_KEY)
 
 def get_quiz_json(topic, subject):
