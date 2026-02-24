@@ -2,6 +2,41 @@ import json
 import os
 from groq import Groq
 from config import GROQ_API_KEY, PROMPTS
+import groq
+import random
+
+# Список твоих ключей (добавь сюда столько, сколько есть)
+GROQ_KEYS = [
+    "",
+    "gsk_key_2_ваша_строка",
+    "gsk_key_3_ваша_строка"
+]
+
+def get_ai_response(prompt):
+    # Копируем список ключей, чтобы пробовать их по очереди
+    available_keys = GROQ_KEYS.copy()
+    
+    while available_keys:
+        # Берем первый ключ из списка
+        current_key = available_keys[0]
+        
+        try:
+            client = groq.Client(api_key=current_key)
+            response = client.chat.completions.create(
+                model="llama3-8b-8192",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return response.choices[0].message.content
+            
+        except Exception as e:
+            # Если ошибка 429 (лимит исчерпан)
+            if "429" in str(e) or "rate_limit" in str(e).lower():
+                print(f"Ключ {current_key[:10]}... исчерпан. Переключаюсь.")
+                available_keys.pop(0) # Удаляем нерабочий ключ и идем на второй круг
+            else:
+                return f"Произошла ошибка: {e}"
+    
+    return "Извини, все лимиты на сегодня исчерпаны даже на запасных ключах!"
 
 def get_ai_response(prompt, subject="General", context=""):
     p_lower = prompt.lower()
